@@ -358,7 +358,9 @@ int main()
 	/*---------------------TD5----------------------*/
 	forward_list<shared_ptr<Item>> listeItems = forward_list(bibliotheque.begin(), bibliotheque.end());
 
-	afficherListeItems(listeItems);
+	forward_list<shared_ptr<Item>> autreListeItems(bibliotheque.size());
+	for (shared_ptr<Item> item : bibliotheque)
+		autreListeItems.push_front(item);
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
