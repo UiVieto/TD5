@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
+#include <forward_list>
 #include "cppitertools/range.hpp"
 #include "gsl/span"
 #include "debogage_memoire.hpp"        // Ajout des numéros de ligne des "new" dans le rapport de fuites.  Doit être après les include du système, qui peuvent utiliser des "placement new" (non supporté par notre ajout de numéros de lignes).
@@ -222,14 +223,14 @@ ostream& Livre::afficher(ostream& os) const {
 	return os;
 }
 
-void ajouterLivres(string nomFichierLivres, vector<unique_ptr<Item>>& bibliotheque)
+void ajouterLivres(string nomFichierLivres, vector<shared_ptr<Item>>& bibliotheque)
 {
 	ifstream Livres(nomFichierLivres);
 	string element;
 	while (getline(Livres, element, '\t'))
 	{
 		cout << "Creation du livre: " << element << endl;
-		unique_ptr<Livre> livre = make_unique<Livre>();
+		shared_ptr<Livre> livre = make_unique<Livre>();
 
 		livre->titre = element;
 
@@ -336,11 +337,11 @@ int main()
 
 	cout << ligneDeSeparation;
 	cout << "Creation bibliotheque:" << endl;
-	vector<unique_ptr<Item>> bibliotheque;
+	vector<shared_ptr<Item>> bibliotheque;
 
 	for (Film* film : listeFilms.enSpan()) {
 		cout << "Ajout de: " << film->titre << endl;
-		bibliotheque.push_back(move(make_unique<Film>(*film)));
+		bibliotheque.push_back(move(make_shared<Film>(*film)));
 	}
 
 	ajouterLivres("Livres.txt", bibliotheque);
@@ -351,8 +352,13 @@ int main()
 	cout << ligneDeSeparation;
 
 	FilmLivre hobbit(*dynamic_cast<Film*>(bibliotheque[4].get()), *dynamic_cast<Livre*>(bibliotheque[9].get()));
-	bibliotheque.push_back(move(make_unique<FilmLivre>(hobbit)));
+	bibliotheque.push_back(move(make_shared<FilmLivre>(hobbit)));
 	cout << *bibliotheque[12];
+
+	/*---------------------TD5----------------------*/
+	forward_list<shared_ptr<Item>> listeItems = forward_list(bibliotheque.begin(), bibliotheque.end());
+
+	afficherListeItems(listeItems);
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
