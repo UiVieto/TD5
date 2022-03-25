@@ -358,9 +358,16 @@ int main()
 	/*---------------------TD5----------------------*/
 	forward_list<shared_ptr<Item>> listeItems = forward_list(bibliotheque.begin(), bibliotheque.end());
 
-	forward_list<shared_ptr<Item>> autreListeItems(bibliotheque.size());
-	for (shared_ptr<Item> item : bibliotheque)
+	forward_list<shared_ptr<Item>> autreListeItems;
+	
+	/*Algorithme qui copie les elements de la bibliotheque dans une autre liste à l'aide du 
+	  push_front. Puisqu'on fait n push_front (n = nombre d'éléments dans la bibliotheque) et que
+	  le push_front a une complexité constante, la complexité de l'algorithme est O(n).*/
+	for (shared_ptr<Item> item : bibliotheque)  
 		autreListeItems.push_front(item);
+
+	for (shared_ptr<Item> item : autreListeItems)
+		cout << *item;
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
