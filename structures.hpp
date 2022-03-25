@@ -37,6 +37,9 @@ private:
 	Film** elements = nullptr; // Pointeur vers un tableau de Film*, chaque Film* pointant vers un Film.
 };
 
+template<typename T>
+class IterateurListe;
+
 template <typename T>
 class Liste {
 public:
@@ -67,12 +70,30 @@ public:
 	shared_ptr<T>& operator[] (int index) const { return elements_[index]; }
 	span<shared_ptr<T>> enSpan() const { return span(elements_.get(), nElements_); }
 
+	IterateurListe<shared_ptr<T>> begin() const;
+	IterateurListe<shared_ptr<T>> end() const;
+
 private:
 	int capacite_ = 0, nElements_ = 0;
 	unique_ptr<shared_ptr<T>[]> elements_; // Pointeur vers un tableau de Acteur*, chaque Acteur* pointant vers un Acteur.
 };
 using ListeActeurs = Liste<Acteur>;
 
+template<typename T>
+class IterateurListe 
+{
+public:
+	IterateurListe(const Liste<T>* pointeurliste, int position = NULL);
+
+	T& operator*() const;
+	IterateurListe<T> operator++();
+	bool operator==(const IterateurListe<T>& iterateur) const;
+	bool operator!=(const IterateurListe<T>& iterateur) const;
+private:
+	int position_;
+	Liste<T>* pointeurListe_;
+	friend class Liste<T>;
+};
 
 class Affichable
 {

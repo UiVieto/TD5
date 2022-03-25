@@ -321,6 +321,42 @@ void afficherListeItems(const Conteneur& conteneur) {
 		cout << *element;
 }
 
+template<typename T>
+IterateurListe<T>::IterateurListe(const Liste<T> Liste, int position) {
+	Liste_ = Liste;
+	position_ = position;
+}
+
+template<typename T>
+T& IterateurListe<T>::operator*() const {
+	return Liste_[position_];
+}
+
+template<typename T>
+IterateurListe<T> IterateurListe<T>::operator++() {
+	return IterateurListe<T>(Liste_, ++position_);
+}
+
+template<typename T>
+bool IterateurListe<T>::operator==(const IterateurListe<T>& iterateur) const {
+	return (position_ == iterateur.position_ && 
+		    Liste_ == iterateur.Liste_) ? true : false;
+}
+
+template<typename T>
+bool IterateurListe<T>::operator!=(const IterateurListe<T>& iterateur) const {
+	return !(*this == iterateur);
+}
+
+template<typename T>
+IterateurListe<shared_ptr<T>> Liste<T>::begin() const{
+	return IterateurListe<shared_ptr<T>>(this, NULL);
+}
+
+template<typename T>
+IterateurListe<shared_ptr<T>> Liste<T>::end() const {
+	return IterateurListe<shared_ptr<T>>(this, nElements_);
+}
 
 int main()
 {
@@ -341,7 +377,7 @@ int main()
 
 	for (Film* film : listeFilms.enSpan()) {
 		cout << "Ajout de: " << film->titre << endl;
-		bibliotheque.push_back(move(make_shared<Film>(*film)));
+		bibliotheque.push_back(make_shared<Film>(*film));
 	}
 
 	ajouterLivres("Livres.txt", bibliotheque);
@@ -352,22 +388,24 @@ int main()
 	cout << ligneDeSeparation;
 
 	FilmLivre hobbit(*dynamic_cast<Film*>(bibliotheque[4].get()), *dynamic_cast<Livre*>(bibliotheque[9].get()));
-	bibliotheque.push_back(move(make_shared<FilmLivre>(hobbit)));
+	bibliotheque.push_back(make_shared<FilmLivre>(hobbit));
 	cout << *bibliotheque[12];
 
 	/*---------------------TD5----------------------*/
 	forward_list<shared_ptr<Item>> listeItems = forward_list(bibliotheque.begin(), bibliotheque.end());
 
 	forward_list<shared_ptr<Item>> autreListeItems;
-	
-	/*Algorithme qui copie les elements de la bibliotheque dans une autre liste à l'aide du 
+
+	/*Algorithme qui copie les elements de la bibliotheque dans une autre liste à l'aide du
 	  push_front. Puisqu'on fait n push_front (n = nombre d'éléments dans la bibliotheque) et que
 	  le push_front a une complexité constante, la complexité de l'algorithme est O(n).*/
-	for (shared_ptr<Item> item : bibliotheque)  
+	for (shared_ptr<Item> item : bibliotheque)
 		autreListeItems.push_front(item);
 
 	for (shared_ptr<Item> item : autreListeItems)
 		cout << *item;
+
+	IterateurListe(listeFilms[0]->acteurs, 0);
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
