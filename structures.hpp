@@ -70,8 +70,8 @@ public:
 	shared_ptr<T>& operator[] (int index) const { return elements_[index]; }
 	span<shared_ptr<T>> enSpan() const { return span(elements_.get(), nElements_); }
 
-	IterateurListe<shared_ptr<T>> begin() const;
-	IterateurListe<shared_ptr<T>> end() const;
+	IterateurListe<T> begin();
+	IterateurListe<T> end();
 
 private:
 	int capacite_ = 0, nElements_ = 0;
@@ -83,10 +83,10 @@ template<typename T>
 class IterateurListe 
 {
 public:
-	IterateurListe(const Liste<T>* pointeurliste, int position = NULL);
+	IterateurListe(Liste<T>* pointeurliste, int position = NULL);
 
-	T& operator*() const;
-	IterateurListe<T> operator++();
+	shared_ptr<T>& operator*();
+	IterateurListe<T>& operator++();
 	bool operator==(const IterateurListe<T>& iterateur) const;
 	bool operator!=(const IterateurListe<T>& iterateur) const;
 private:
@@ -106,8 +106,10 @@ public:
 	Item() = default;
 	Item(const Item& item) = delete;
 	virtual ~Item() = default;
+
 	virtual ostream& afficher(ostream& os) const = 0;
 	friend ostream& operator<< (ostream& os, const Item& item);
+
 	string titre = "Item";
 	int anneeSortie = 0;
 };
