@@ -14,7 +14,7 @@
 
 #include <vector>
 #include <forward_list>
-#include <set>
+#include <map>
 
 #include <iostream>
 #include <fstream>
@@ -418,11 +418,13 @@ int main()
 
 	//2. Conteneurs
 	cout << ligneDeSeparation;
-	set<shared_ptr<Item>> bibliothequeTrie(bibliotheque.begin(), bibliotheque.end());
+	map<string, shared_ptr<Item>> bibliothequeTrie;
 
-	for (shared_ptr<Item> item : bibliothequeTrie)
-		cout << *item;
-	
+	for (shared_ptr<Item> item : bibliotheque)
+		bibliothequeTrie[item->titre] = item;
+
+	for (auto item : bibliothequeTrie)
+		cout << *item.second;	
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
