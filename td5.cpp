@@ -199,27 +199,20 @@ ostream& operator<< (ostream& os, const ListeFilms& listeFilms)
 }
 
 ostream& Item::afficher(ostream& os) const {
-	os << "Titre: " << titre << endl;
+	os << titre;
 
 	return os;
 }
+
 ostream& Film::afficher(ostream& os) const {
 	Item::afficher(os);
-	os << "  Réalisateur: " << realisateur << "  Année :" << anneeSortie << endl;
-	os << "  Recette: " << recette << "M$" << endl;
-
-	os << "Acteurs:" << endl;
-	for (const shared_ptr<Acteur>& acteur : acteurs.enSpan())
-		os << *acteur;
-
+	os << ", par " << realisateur << endl;
 	return os;
 }
 
 ostream& Livre::afficher(ostream& os) const {
 	Item::afficher(os);
-	os << "  Auteur: " << auteur << "  Année: " << anneeSortie << endl;
-	os << "  Nombre de Pages: " << nPages << endl;
-	os << "  Ventes: " << ventes << " millions de copies" << endl;
+	os << ", de " << auteur << endl;
 
 	return os;
 }
@@ -279,17 +272,8 @@ FilmLivre::FilmLivre(const Film& film, const Livre& livre)
 
 ostream& FilmLivre::afficher(ostream& os) const
 {
-	os << "Titre: " << Film::titre << endl;
-	os << "  Réalisateur: " << realisateur << "  Année :" << Film::anneeSortie << endl;
-	os << "  Recette: " << recette << "M$" << endl;
-
-	os << "Acteurs:" << endl;
-	for (const shared_ptr<Acteur>& acteur : acteurs.enSpan())
-		os << *acteur;
-
-	os << "Auteur: " << auteur << endl;
-	os << "Nombre de Pages: " << nPages << endl;
-	os << "Ventes: " << ventes << " millions de copies" << endl;
+	os << Film::titre << ", ";
+	os << "par " << realisateur << " de " << auteur << endl;
 
 	return os;
 }
@@ -425,6 +409,8 @@ int main()
 
 	for (auto item : bibliothequeTrie)
 		cout << *item.second;	
+
+	//3. Algorithmes
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
