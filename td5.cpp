@@ -379,24 +379,38 @@ int main()
 	FilmLivre hobbit(*dynamic_cast<Film*>(bibliotheque[4].get()), *dynamic_cast<Livre*>(bibliotheque[9].get()));
 	bibliotheque.push_back(make_shared<FilmLivre>(hobbit));
 	cout << *bibliotheque[12];
+	cout << ligneDeSeparation;
 
 	/*---------------------TD5----------------------*/
 	//1. Listes liées et itérateurs
+	cout << "----------------------TD5----------------------" << endl;
+	//1.1
 	forward_list<shared_ptr<Item>> listeItems(bibliotheque.begin(), bibliotheque.end());
 
+	//1.2
 	forward_list<shared_ptr<Item>> autreListeItems;
-
-	/*Algorithme qui copie les elements de la bibliotheque dans une autre liste à l'aide du
-	  push_front. Puisqu'on fait n push_front (n = nombre d'éléments dans la bibliotheque) et que
-	  le push_front a une complexité constante, la complexité de l'algorithme est O(n).*/
 	for (shared_ptr<Item> item : bibliotheque)
 		autreListeItems.push_front(item);
 
-	for (shared_ptr<Item> item : autreListeItems)
-		cout << *item;
+	//1.3
+	forward_list<shared_ptr<Item>> copieListeItems;
+	copieListeItems.assign(listeItems.begin(), listeItems.end());
 
-	cout << ligneDeSeparation;
+	//1.4
+	/*Trouver le nombre d'élément est O(n), construire un vector avec la taille nécessaire
+	  est O(1) et ajouter les éléments dans le vector est O(n), donc la complexité
+	  de l'algorithme est O(n).*/
 
+	int nbElements = 0;
+	for (auto item : listeItems)
+		nbElements++;
+
+	vector<shared_ptr<Item>> nouvelleBibliotheque(nbElements);
+
+	for (auto item : listeItems)
+		nouvelleBibliotheque[--nbElements] = item;
+
+	//1.5
 	for (auto&& acteur : listeFilms[0]->acteurs)
 		cout << *acteur;
 
