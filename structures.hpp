@@ -37,6 +37,9 @@ private:
 	Film** elements = nullptr; // Pointeur vers un tableau de Film*, chaque Film* pointant vers un Film.
 };
 
+template<typename T>
+class IterateurListe;
+
 template <typename T>
 class Liste {
 public:
@@ -67,12 +70,30 @@ public:
 	shared_ptr<T>& operator[] (int index) const { return elements_[index]; }
 	span<shared_ptr<T>> enSpan() const { return span(elements_.get(), nElements_); }
 
+	IterateurListe<T> begin();
+	IterateurListe<T> end();
+
 private:
 	int capacite_ = 0, nElements_ = 0;
 	unique_ptr<shared_ptr<T>[]> elements_; // Pointeur vers un tableau de Acteur*, chaque Acteur* pointant vers un Acteur.
 };
 using ListeActeurs = Liste<Acteur>;
 
+template<typename T>
+class IterateurListe
+{
+public:
+	IterateurListe(Liste<T>* pointeurliste, int position = NULL);
+
+	shared_ptr<T>& operator*();
+	IterateurListe<T>& operator++();
+	bool operator==(const IterateurListe<T>& iterateur) const;
+	bool operator!=(const IterateurListe<T>& iterateur) const;
+private:
+	int position_;
+	Liste<T>* pointeurListe_;
+	friend class Liste<T>;
+};
 
 class Affichable
 {
@@ -85,8 +106,10 @@ public:
 	Item() = default;
 	Item(const Item& item) = delete;
 	virtual ~Item() = default;
+
 	virtual ostream& afficher(ostream& os) const = 0;
 	friend ostream& operator<< (ostream& os, const Item& item);
+
 	string titre = "Item";
 	int anneeSortie = 0;
 };
@@ -124,4 +147,11 @@ struct FilmLivre : public Film, public Livre
 struct Acteur
 {
 	string nom; int anneeNaissance = 0; char sexe = '\0';
+};
+
+struct ComparateurItem {
+	bool operator () (const shared_ptr<Item>& unItem, const shared_ptr<Item>& autreItem) const
+	{
+		return unItem->titre < autreItem->titre;
+	}
 };

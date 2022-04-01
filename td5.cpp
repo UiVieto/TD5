@@ -1,4 +1,4 @@
-﻿/*Ce programme permet de se familiariser avec les méthodes virtuelles, les objets polymorphes, l’héritage simple et multiple.
+/*Ce programme permet de se familiariser avec les méthodes virtuelles, les objets polymorphes, l’héritage simple et multiple.
   Complété à partir du Solutionnaire du TD3 INF1015 hiver 2021 de Francois-R.Boyer@PolyMtl.ca
 					Reda Rhanmouni  2087548
 					Huy Viet Nguyen 2136378                   */
@@ -13,6 +13,9 @@
 #include "verification_allocation.hpp" // Nos fonctions pour le rapport de fuites de mémoire.
 
 #include <vector>
+#include <forward_list>
+#include <map>
+#include <set>
 
 #include <iostream>
 #include <fstream>
@@ -21,7 +24,6 @@
 #include <algorithm>
 #include <sstream>
 #include <iomanip>
-#include <forward_list>
 #include "cppitertools/range.hpp"
 #include "gsl/span"
 #include "debogage_memoire.hpp"        // Ajout des numéros de ligne des "new" dans le rapport de fuites.  Doit être après les include du système, qui peuvent utiliser des "placement new" (non supporté par notre ajout de numéros de lignes).
@@ -198,57 +200,36 @@ ostream& operator<< (ostream& os, const ListeFilms& listeFilms)
 }
 
 ostream& Item::afficher(ostream& os) const {
-	os << "Titre: " << titre << endl;
+	os << titre;
 
 	return os;
 }
+
 ostream& Film::afficher(ostream& os) const {
 	Item::afficher(os);
-	os << "  Réalisateur: " << realisateur << "  Année :" << anneeSortie << endl;
-	os << "  Recette: " << recette << "M$" << endl;
-
-	os << "Acteurs:" << endl;
-	for (const shared_ptr<Acteur>& acteur : acteurs.enSpan())
-		os << *acteur;
-
+	os << ", par " << realisateur << endl;
 	return os;
 }
 
 ostream& Livre::afficher(ostream& os) const {
 	Item::afficher(os);
-	os << "  Auteur: " << auteur << "  Année: " << anneeSortie << endl;
-	os << "  Nombre de Pages: " << nPages << endl;
-	os << "  Ventes: " << ventes << " millions de copies" << endl;
+	os << ", de " << auteur << endl;
 
 	return os;
 }
 
 void ajouterLivres(string nomFichierLivres, vector<shared_ptr<Item>>& bibliotheque)
 {
-	ifstream Livres(nomFichierLivres);
-	string element;
-	while (getline(Livres, element, '\t'))
+	ifstream fichier(nomFichierLivres);
+	fichier.exceptions(ios::failbit);
+	while (!ws(fichier).eof())
 	{
-		cout << "Creation du livre: " << element << endl;
 		shared_ptr<Livre> livre = make_unique<Livre>();
+		fichier >> quoted(livre->titre) >> livre->anneeSortie >> quoted(livre->auteur) >> livre->ventes >> (livre->nPages);
+		bibliotheque.push_back(livre);
 
-		livre->titre = element;
-
-		getline(Livres, element, '\t');
-		livre->anneeSortie = stoi(element);
-
-		getline(Livres, element, '\t');
-		livre->auteur = element;
-
-		getline(Livres, element, '\t');
-		livre->ventes = stoi(element);
-
-		getline(Livres, element, '\n');
-		livre->nPages = stoi(element);
-
-		cout << "Ajout de:" << livre->titre << endl;
-		bibliotheque.push_back(move(livre));
 	}
+	
 }
 
 Film::Film(const Film& film)
@@ -278,17 +259,8 @@ FilmLivre::FilmLivre(const Film& film, const Livre& livre)
 
 ostream& FilmLivre::afficher(ostream& os) const
 {
-	os << "Titre: " << Film::titre << endl;
-	os << "  Réalisateur: " << realisateur << "  Année :" << Film::anneeSortie << endl;
-	os << "  Recette: " << recette << "M$" << endl;
-
-	os << "Acteurs:" << endl;
-	for (const shared_ptr<Acteur>& acteur : acteurs.enSpan())
-		os << *acteur;
-
-	os << "Auteur: " << auteur << endl;
-	os << "Nombre de Pages: " << nPages << endl;
-	os << "Ventes: " << ventes << " millions de copies" << endl;
+	os << Film::titre << ", ";
+	os << "par " << realisateur << " de " << auteur << endl;
 
 	return os;
 }
@@ -321,6 +293,47 @@ void afficherListeItems(const Conteneur& conteneur) {
 		cout << *element;
 }
 
+template<typename T>
+IterateurListe<T>::IterateurListe(Liste<T>* pointeurListe, int position) {
+	pointeurListe_ = pointeurListe;
+	position_ = position;
+}
+
+template<typename T>
+shared_ptr<T>& IterateurListe<T>::operator*() {
+	return (*pointeurListe_)[position_];
+}
+
+template<typename T>
+IterateurListe<T>& IterateurListe<T>::operator++() {
+	++position_;
+	return *this;
+}
+
+template<typename T>
+bool IterateurListe<T>::operator==(const IterateurListe<T>& iterateur) const {
+	return position_ == iterateur.position_ && pointeurListe_ == iterateur.pointeurListe_;
+}
+
+template<typename T>
+bool IterateurListe<T>::operator!=(const IterateurListe<T>& iterateur) const {
+	return !(*this == iterateur);
+}
+
+template<typename T>
+IterateurListe<T> Liste<T>::begin() {
+	return IterateurListe<T>(this, NULL);
+}
+
+template<typename T>
+IterateurListe<T> Liste<T>::end() {
+	return IterateurListe<T>(this, nElements_);
+}
+
+bool operator<(const Item& item, const Item& autreItem) {
+	return item.titre < autreItem.titre;
+}
+
 
 int main()
 {
@@ -341,7 +354,7 @@ int main()
 
 	for (Film* film : listeFilms.enSpan()) {
 		cout << "Ajout de: " << film->titre << endl;
-		bibliotheque.push_back(move(make_shared<Film>(*film)));
+		bibliotheque.push_back(make_shared<Film>(*film));
 	}
 
 	ajouterLivres("Livres.txt", bibliotheque);
@@ -352,17 +365,53 @@ int main()
 	cout << ligneDeSeparation;
 
 	FilmLivre hobbit(*dynamic_cast<Film*>(bibliotheque[4].get()), *dynamic_cast<Livre*>(bibliotheque[9].get()));
-	bibliotheque.push_back(move(make_shared<FilmLivre>(hobbit)));
+	bibliotheque.push_back(make_shared<FilmLivre>(hobbit));
 	cout << *bibliotheque[12];
 
 	/*---------------------TD5----------------------*/
-	forward_list<shared_ptr<Item>> listeItems = forward_list(bibliotheque.begin(), bibliotheque.end());
+	//1. Listes liées et itérateurs
+	forward_list<shared_ptr<Item>> listeItems(bibliotheque.begin(), bibliotheque.end());
 
-	afficherListeItems(listeItems);
+	forward_list<shared_ptr<Item>> autreListeItems;
+
+	/*Algorithme qui copie les elements de la bibliotheque dans une autre liste à l'aide du
+	  push_front. Puisqu'on fait n push_front (n = nombre d'éléments dans la bibliotheque) et que
+	  le push_front a une complexité constante, la complexité de l'algorithme est O(n).*/
+	for (shared_ptr<Item> item : bibliotheque)
+		autreListeItems.push_front(item);
+
+	for (shared_ptr<Item> item : autreListeItems)
+		cout << *item;
+
+	cout << ligneDeSeparation;
+
+	for (auto&& acteur : listeFilms[0]->acteurs)
+		cout << *acteur;
+
+	//2. Conteneurs
+	cout << ligneDeSeparation;
+	cout << " Conteneur Set ordonné" << end;
+	set<shared_ptr<Item>, ComparateurItem> bibliothequeOrdo;
+	for (shared_ptr<Item> item : bibliotheque)
+		bibliothequeOrdo.insert(item);
+
+	for (auto item : bibliothequeOrdo)
+		cout << *item;
+
+	//2.2
+	cout << ligneDeSeparation;
+	cout << " Conteneur Map" << endl;
+	map<string, shared_ptr<Item>> bibliothequeMap;
+	for (shared_ptr<Item> item : bibliotheque)
+		bibliothequeMap[item->titre] = item;
+	cout << *(bibliothequeMap["The Hobbit"]) << endl;
+
+
+
+	//3. Algorithmes
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
 
 	return 0;
 }
-
