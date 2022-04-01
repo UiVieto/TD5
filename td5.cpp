@@ -15,14 +15,18 @@
 #include <vector>
 #include <forward_list>
 #include <map>
+#include <set>
+
+#include <algorithm>
+#include <numeric>
 
 #include <iostream>
 #include <fstream>
 #include <string>
-#include <limits>
-#include <algorithm>
 #include <sstream>
 #include <iomanip>
+
+#include <limits>
 #include "cppitertools/range.hpp"
 #include "gsl/span"
 #include "debogage_memoire.hpp"        // Ajout des numéros de ligne des "new" dans le rapport de fuites.  Doit être après les include du système, qui peuvent utiliser des "placement new" (non supporté par notre ajout de numéros de lignes).
@@ -385,9 +389,14 @@ int main()
 	//1. Listes liées et itérateurs
 	cout << "----------------------TD5----------------------" << endl;
 	//1.1
+	cout << "1.1" << endl;
 	forward_list<shared_ptr<Item>> listeItems(bibliotheque.begin(), bibliotheque.end());
+	
+	for (shared_ptr<Item> item : listeItems)
+		cout << *item;
 
 	//1.2
+	cout << endl << "1.2" << endl;
 	forward_list<shared_ptr<Item>> autreListeItems;
 	for (shared_ptr<Item> item : bibliotheque)
 		autreListeItems.push_front(item);
@@ -414,21 +423,34 @@ int main()
 	for (auto&& acteur : listeFilms[0]->acteurs)
 		cout << *acteur;
 
-	//2. Conteneurs
 	cout << ligneDeSeparation;
+
+	//2. Conteneurs
+	//2.1 
+	set<shared_ptr<Item>, ComparateurItem> bibliothequeOrdo;
+	for (shared_ptr<Item> item : bibliotheque)
+		bibliothequeOrdo.insert(item);
+
+	//2.2
 	map<string, shared_ptr<Item>> bibliothequeTrie;
 
 	for (shared_ptr<Item> item : bibliotheque)
 		bibliothequeTrie[item->titre] = item;
-
-	for (auto item : bibliothequeTrie)
-		cout << *item.second;	
+	
+	cout << ligneDeSeparation;
 
 	//3. Algorithmes
+	//3.1
+	vector<shared_ptr<Item>> copieBibliotheque;
+
+	copy_if(listeItems.begin(), listeItems.end(), back_inserter(copieBibliotheque), [](auto item) {return dynamic_cast<Film*>(item.get()) != nullptr; });
+
+	//3.2
+	int sommeRecettes = reduce(copieBibliotheque.begin(), copieBibliotheque.end(), 0, [](int somme, shared_ptr<Item> item) {return somme + dynamic_cast<Film*>(item.get())->recette; });
+	cout << "Somme des recettes: " << sommeRecettes << " M$";
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);
 
 	return 0;
 }
-

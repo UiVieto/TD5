@@ -148,3 +148,10 @@ struct Acteur
 {
 	string nom; int anneeNaissance = 0; char sexe = '\0';
 };
+
+struct ComparateurItem {
+	bool operator () (const shared_ptr<Item>& unItem, const shared_ptr<Item>& autreItem) const
+	{
+		return unItem->titre > autreItem->titre;
+	}
+};
