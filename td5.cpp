@@ -223,29 +223,15 @@ ostream& Livre::afficher(ostream& os) const {
 
 void ajouterLivres(string nomFichierLivres, vector<shared_ptr<Item>>& bibliotheque)
 {
-	ifstream Livres(nomFichierLivres);
-	string element;
-	while (getline(Livres, element, '\t'))
-	{
-		cout << "Creation du livre: " << element << endl;
+	ifstream fichier(nomFichierLivres);
+	fichier.exceptions(ios::failbit);
+
+	while (!ws(fichier).eof())
+	{	
 		shared_ptr<Livre> livre = make_unique<Livre>();
-
-		livre->titre = element;
-
-		getline(Livres, element, '\t');
-		livre->anneeSortie = stoi(element);
-
-		getline(Livres, element, '\t');
-		livre->auteur = element;
-
-		getline(Livres, element, '\t');
-		livre->ventes = stoi(element);
-
-		getline(Livres, element, '\n');
-		livre->nPages = stoi(element);
-
-		cout << "Ajout de:" << livre->titre << endl;
-		bibliotheque.push_back(move(livre));
+		fichier >> quoted(livre->titre) >> livre->anneeSortie >> quoted(livre->auteur) >> livre->ventes >> (livre->nPages);
+		bibliotheque.push_back(livre);
+		cout << "Ajout de: " << livre->titre << endl;
 	}
 }
 
@@ -365,7 +351,7 @@ int main()
 	/*---------------------TD4----------------------*/
 
 	cout << ligneDeSeparation;
-	cout << "Creation bibliotheque:" << endl;
+	cout << "Creation de la bibliotheque:" << endl;
 	vector<shared_ptr<Item>> bibliotheque;
 
 	for (Film* film : listeFilms.enSpan()) {
@@ -386,29 +372,44 @@ int main()
 	cout << ligneDeSeparation;
 
 	/*---------------------TD5----------------------*/
-	//1. Listes liées et itérateurs
+	
 	cout << "----------------------TD5----------------------" << endl;
+	//1. Listes liées et itérateurs
+	cout << "1. Listes liées et itérateurs" << endl;
+
 	//1.1
 	cout << "1.1" << endl;
+
 	forward_list<shared_ptr<Item>> listeItems(bibliotheque.begin(), bibliotheque.end());
-	
+
 	for (shared_ptr<Item> item : listeItems)
 		cout << *item;
 
 	//1.2
 	cout << endl << "1.2" << endl;
+
 	forward_list<shared_ptr<Item>> autreListeItems;
-	for (shared_ptr<Item> item : bibliotheque)
+	for (shared_ptr<Item> item : listeItems)
 		autreListeItems.push_front(item);
 
+	for (shared_ptr<Item> item : autreListeItems)
+		cout << *item;
+
 	//1.3
+	cout << endl << "1.3" << endl;
+
 	forward_list<shared_ptr<Item>> copieListeItems;
 	copieListeItems.assign(listeItems.begin(), listeItems.end());
+
+	for (shared_ptr<Item> item : copieListeItems)
+		cout << *item;
 
 	//1.4
 	/*Trouver le nombre d'élément est O(n), construire un vector avec la taille nécessaire
 	  est O(1) et ajouter les éléments dans le vector est O(n), donc la complexité
 	  de l'algorithme est O(n).*/
+
+	cout << endl << "1.4" << endl;
 
 	int nbElements = 0;
 	for (auto item : listeItems)
@@ -419,35 +420,61 @@ int main()
 	for (auto item : listeItems)
 		nouvelleBibliotheque[--nbElements] = item;
 
+	for (shared_ptr<Item> item : nouvelleBibliotheque)
+		cout << *item;
+
 	//1.5
+	cout << endl << "1.5" << endl;
+
 	for (auto&& acteur : listeFilms[0]->acteurs)
 		cout << *acteur;
 
 	cout << ligneDeSeparation;
 
 	//2. Conteneurs
+	cout << "2. Conteneurs" << endl;
+
 	//2.1 
+	cout << endl << "2.1" << endl;
+	cout << "Conteneur Set ordonné" << endl;
+
 	set<shared_ptr<Item>, ComparateurItem> bibliothequeOrdo;
 	for (shared_ptr<Item> item : bibliotheque)
 		bibliothequeOrdo.insert(item);
 
-	//2.2
-	map<string, shared_ptr<Item>> bibliothequeTrie;
+	for (auto item : bibliothequeOrdo)
+		cout << *item;
 
+	//2.2
+	cout << endl << "2.2" << endl;
+	cout << "Conteneur Map" << endl;
+
+	map<string, shared_ptr<Item>> bibliothequeMap;
 	for (shared_ptr<Item> item : bibliotheque)
-		bibliothequeTrie[item->titre] = item;
+		bibliothequeMap[item->titre] = item;
+
+	cout << *(bibliothequeMap["The Hobbit"]) << endl;
 	
 	cout << ligneDeSeparation;
 
 	//3. Algorithmes
+	cout << "3. Algorithmes" << endl;
+
 	//3.1
+	cout << endl << "3.1" << endl;
+
 	vector<shared_ptr<Item>> copieBibliotheque;
 
 	copy_if(listeItems.begin(), listeItems.end(), back_inserter(copieBibliotheque), [](auto item) {return dynamic_cast<Film*>(item.get()) != nullptr; });
+	
+	for (shared_ptr<Item> item : copieBibliotheque)
+		cout << *item;
 
 	//3.2
+	cout << endl << "3.2" << endl;
+
 	int sommeRecettes = reduce(copieBibliotheque.begin(), copieBibliotheque.end(), 0, [](int somme, shared_ptr<Item> item) {return somme + dynamic_cast<Film*>(item.get())->recette; });
-	cout << "Somme des recettes: " << sommeRecettes << " M$";
+	cout << "Somme des recettes: " << sommeRecettes << " M$" << endl;
 
 	// Détruire tout avant de terminer le programme.
 	listeFilms.detruire(true);

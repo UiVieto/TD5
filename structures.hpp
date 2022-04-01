@@ -80,7 +80,7 @@ private:
 using ListeActeurs = Liste<Acteur>;
 
 template<typename T>
-class IterateurListe 
+class IterateurListe
 {
 public:
 	IterateurListe(Liste<T>* pointeurliste, int position = NULL);
@@ -152,6 +152,6 @@ struct Acteur
 struct ComparateurItem {
 	bool operator () (const shared_ptr<Item>& unItem, const shared_ptr<Item>& autreItem) const
 	{
-		return unItem->titre > autreItem->titre;
+		return unItem->titre < autreItem->titre;
 	}
 };
